@@ -1,0 +1,24 @@
+{
+  "name": "walkin-lambda-diff",
+  "version": "1.0.0",
+  "description": "diff checker for walk.in",
+  "main": "lambda.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/walkinappnyc/walkin-lambda-diff.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/walkinappnyc/walkin-lambda-diff/issues"
+  },
+  "homepage": "https://github.com/walkinappnyc/walkin-lambda-diff#readme",
+  "dependencies": {
+    "date-time": "^3.0.0",
+    "request": "^2.88.0",
+    "xml2js": "^0.4.19"
+  }
+}
