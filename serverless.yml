@@ -41,6 +41,12 @@ provider:
 #            - "Ref" : "ServerlessDeploymentBucket"
 #            - "/*"
 
+iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource: "*"
+
 # you can define service wide environment variables here
 #  environment:
 #    variable1: value1

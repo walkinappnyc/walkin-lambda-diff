@@ -4,10 +4,14 @@ const parseString = require('xml2js').parseString
 const request = require('request')
 const fs = require('fs')
 const dateTime = require('date-time')
-
+const AWS = require('aws-sdk')
 
 const XMLUrl = `https://api.walk.in/api/Landlords`
 const propUrl = `https://api.walk.in/api/Properties`
+
+const lambda = new AWS.Lambda({
+	region: 'us-east-1'
+})
 
 module.exports.diff = (event, context, callback) => {
 
@@ -16,6 +20,7 @@ module.exports.diff = (event, context, callback) => {
   }
 
   // console.log([1, 2, 3].diff([2, 3]))
+
 
  function getXMLFeeds() {
 	let options = {
@@ -107,11 +112,12 @@ function createProperties(xml_feeds) {
 			    		// console.log(`${location[0].state[0]}`)
 			    		// console.log(`${location[0].zipcode[0]}`)
 			    		// console.log(`${$.id}-${item.id}`)
-			    		xmlIdArr.push(`${$.id}-${item.id}`)
+			    		// xmlIdArr.push(`${$.id}-${item.id}`)
 			    		let str = `${details[0].price[0]}` + `${location[0].address[0]}` + `${location[0].apartment[0]}` + `${location[0].city[0]}` + `${location[0].state[0]}` + `${location[0].zipcode[0]}`
 			    		// console.log(`${str}`)
 			    		let downcase = str.toLowerCase()
 			    		let xml_id = downcase.replace(/ /g,'')
+			    		xmlIdArr.push(`${xml_id}`)
 			    		// console.log(`${xml_id}`)
 			    		return xmlIdArr
 			    	})
@@ -130,6 +136,22 @@ function createProperties(xml_feeds) {
 			    			})
 			    		})
 
+			    		const params = {
+			                FunctionName: 'walkin-xml-lambda-dev-cron-job',
+			                InvocationType: 'RequestResponse',
+			                Payload: "true"
+			             }
+
+			    		lambda.invoke(params, function(error, res) {
+						    console.log(`${res}`)
+			                if (error) {
+			                  console.error(JSON.stringify(error))
+			                  return new Error(`Erorr sending message: ${JSON.stringify(error)}`)
+			                } else if (res) {
+			                  console.log(`${JSON.stringify(res)} - diff lambda invoked`)
+			                  callback(null, res)
+			                }
+						 })
 			    	}
 
 				})
