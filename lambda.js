@@ -7,16 +7,17 @@ const dateTime = require('date-time')
 
 
 const XMLUrl = `https://api.walk.in/api/Landlords`
+const propUrl = `https://api.walk.in/api/Properties`
 
 module.exports.diff = (event, context, callback) => {
-  // return {
-  //   statusCode: 200,
-  //   body: JSON.stringify({
-  //     message: 'Go Serverless v1.0! Your function executed successfully!',
-  //     input: event,
-  //   }),
-  // };
-  function getXMLFeeds() {
+
+  Array.prototype.diff = function(a) {
+    return this.filter(function(i) {return a.indexOf(i) < 0;});
+  }
+
+  // console.log([1, 2, 3].diff([2, 3]))
+
+ function getXMLFeeds() {
 	let options = {
 		url: `${XMLUrl}`,
 		method: 'GET',
@@ -50,49 +51,94 @@ function createProperties(xml_feeds) {
 		// console.log(`feed: ${feed}`)
 		// console.log(feed.id)
 		// console.log(feed.company)
+		 function getProps() {
+			let options = {
+				url: `${propUrl}`,
+				method: 'GET',
+				headers: {
+					'Accept': 'application/JSON'
+				},
+				json: true
+			}
 
-		request(`${item.xml_feed_url}`, function (err, res, body) {
-			// console.log('error:', err)
-			// console.log('statusCode:', res && res.statusCode)
-			// console.log('body', body)
+			const data = request(options, function(err, res, body) {
+				let propArr = []
+				// console.log(urlArr)
+				body.forEach(item => {
+					// console.log(`${JSON.stringify(item.xml_id)}`)
+					propArr.push(item.xml_id)
+					// console.log(`${propArr}`)
+					return propArr
+				})
+				getXMLId(propArr)
+			})
+		}
 
-		let xml = body
-		parseString(xml, function (err, result) {
-	    	// console.dir(result)
+		getProps()
 
-	    	let dataJSON = JSON.stringify(result)
-	    	// console.log(result.streeteasy)
-	    	// console.log(result.streeteasy.properties)
-	    	// console.log(result.streeteasy.properties[0])
-	 		//    console.log(`feed: ${item}`)
-			// console.log(item.id)
-			// console.log(item.company)
+		function getXMLId(propArr) {
 
+			console.log(`${propArr}`)
+			const data = request(`${item.xml_feed_url}`, function (err, res, body) {
 
-	    	result.streeteasy.properties[0].property.forEach(property => {
-	    		let {
-	    			$,
-	    			location,
-	    			details,
-	    			openHouses,
-	    			agents,
-	    			media,
-	    			applyUrl
-	    		} = property
+				let xml = body
+				parseString(xml, function (err, result) {
+			    	// console.dir(result)
 
-	    		// console.log(`${details[0].price[0]}`)
-	    		// console.log(`${location[0].address[0]}`)
-	    		// console.log(`${location[0].apartment[0]}`)
-	    		// console.log(`${location[0].city[0]}`)
-	    		// console.log(`${location[0].state[0]}`)
-	    		let str = `${details[0].price[0]}` + `${location[0].address[0]}` + `${location[0].apartment[0]}` + `${location[0].city[0]}` + `${location[0].state[0]}`
-	    		// console.log(`${str}`)
-	    		let downcase = str.toLowerCase()
-	    		let xml_id = downcase.replace(/ /g,'')
-	    		console.log(`${xml_id}`)
-	    	})
-		})
-		})
+			    	let dataJSON = JSON.stringify(result)
+
+					let xmlIdArr = []
+
+			    	result.streeteasy.properties[0].property.forEach(property => {
+			    		let {
+			    			$,
+			    			location,
+			    			details,
+			    			openHouses,
+			    			agents,
+			    			media,
+			    			applyUrl
+			    		} = property
+
+			    		// console.log(`${details[0].price[0]}`)
+			    		// console.log(`${location[0].address[0]}`)
+			    		// console.log(`${location[0].apartment[0]}`)
+			    		// console.log(`${location[0].city[0]}`)
+			    		// console.log(`${location[0].state[0]}`)
+			    		// console.log(`${location[0].zipcode[0]}`)
+			    		// console.log(`${$.id}-${item.id}`)
+			    		xmlIdArr.push(`${$.id}-${item.id}`)
+			    		let str = `${details[0].price[0]}` + `${location[0].address[0]}` + `${location[0].apartment[0]}` + `${location[0].city[0]}` + `${location[0].state[0]}` + `${location[0].zipcode[0]}`
+			    		// console.log(`${str}`)
+			    		let downcase = str.toLowerCase()
+			    		let xml_id = downcase.replace(/ /g,'')
+			    		// console.log(`${xml_id}`)
+			    		return xmlIdArr
+			    	})
+			    	console.log(`${xmlIdArr}`)
+			    	if (propArr === undefined) {
+			    		[].diff(xmlIdArr)
+			    		console.log([].diff(xmlIdArr))
+			    	} else {
+			    		propArr.diff(xmlIdArr)
+			    		console.log(propArr.diff(xmlIdArr))
+			    		let deleteArr = propArr.diff(xmlIdArr)
+			    		deleteArr.forEach(item => {
+			    			console.log(`${item}`)
+			    			request.delete(`${propUrl}/${item}`, function(err, res, body) {
+
+			    			})
+			    		})
+
+			    	}
+
+				})
+			})
+
+		}
+
+		getXMLId()
+
 	})
 }
 
